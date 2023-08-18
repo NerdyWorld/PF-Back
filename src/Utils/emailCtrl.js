@@ -1,15 +1,13 @@
-import { config } from 'dotenv'
-config()
+require("dotenv").config();
 
-const MAIL_ID = process.env.MAIL_ID;
-const MAIL_PASSWORD = process.env.MAIL_PASSWORD;
-
-
-import nodemailer from "nodemailer";
-import asyncHandler from "express-async-handler";
+const { MAIL_ID } = process.env;
+const { MAIL_PASSWORD } = process.env;
 
 
-export const sendMail = asyncHandler(async(data, req, res) =>{
+const nodemailer = require("nodemailer");
+const asyncHandler = require("express-async-handler");
+
+const sendMail = asyncHandler(async(data, req, res) =>{
 try{
   let transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
@@ -21,12 +19,33 @@ try{
     },
   });
 
+
   let info = await transporter.sendMail({
-    from: '"Hi! We are Soul Music!" ', 
     to: data.to, 
     subject: data.subject,
-    text: data.text,
-    html: data.htm, 
+    html: data.html,
+    attachments: [
+      {
+        filename: "passwordImage.png",
+        path: "./images/passwordImage.png",
+        cid: "password"
+      },
+      {
+        filename: "github.png",
+        path: "./images/github.png",
+        cid: "github"
+      },
+      {
+        filename: "instagram.png",
+        path: "./images/instagram.png",
+        cid: "instagram"
+      },
+      {
+        filename: "twitter.png",
+        path: "./images/twitter.png",
+        cid: "twitter"
+      },
+    ] 
   });
 
 }catch(err){
@@ -34,4 +53,9 @@ try{
 }
 
 });
+
+
+module.exports = sendMail
+
+
 

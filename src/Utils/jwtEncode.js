@@ -1,13 +1,14 @@
 require("dotenv").config();
 
-const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
+const {JWT_SECRET_KEY} = process.env;
 
 
-import jwt from "jsonwebtoken";
+const jwt = require("jsonwebtoken");
 
-export const generateToken = (id) =>{
+const generateToken = (id) =>{
   return jwt.sign({id}, JWT_SECRET_KEY);
 };
 
 
-// {expiresIn: "1d"}
+module.exports = generateToken;
+
