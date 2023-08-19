@@ -82,6 +82,36 @@ userController.loginUser = async(user) =>{
   }
 };
 
+userController.googleAuth = async(user) =>{
+  try{
+    const userExist = await Users.findOne({
+      where: {
+        email: user.email
+      }
+    });
+
+    // ACCOUNT ALREADY ASSOCIATED WITH GOOGLE EMAIL
+    if(userExist && !userExist.googleUser){
+      return {msg: "Account already associated with Google Email"};
+    };
+
+    // REGISTERED
+    if(!userExist){
+      const createUser = await Users.create(user);
+
+      return {msg: "Google user created", data: createUser.dataValues};
+    };
+
+    // LOGGED
+    if(userExist && userExist.googleUser){
+      return {msg: "User logged", data: userExist}
+    }
+
+  }catch(error){
+    console.log(error);
+  }
+};
+
 userController.updateUser = async(newUser, userId) =>{
   try{
     

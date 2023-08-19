@@ -27,6 +27,19 @@ userHandler.loginUserHandler = async(req, res) =>{
   }
 };
 
+userHandler.googleAuthHandler = async(req, res) =>{
+  
+  const response = await userController.googleAuth(req.body);
+
+  if(response.msg === "Account already associated with Google Email"){
+    res.status(500).json(response);
+  }else{
+    res.status(200).json(response);
+  }
+};
+
+
+
 userHandler.updateUserHandler = async(req, res) =>{
 
   const response = await userController.updateUser(req.body, req.params.userId);
@@ -64,9 +77,6 @@ userHandler.getAllUsersHandler = async(req, res) =>{
 
   res.status(200).json(response);
 };
-
-
-
 
 userHandler.forgotPasswordHandler = async(req, res) =>{
 

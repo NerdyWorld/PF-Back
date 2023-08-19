@@ -4,13 +4,26 @@ const colorsHandler = () => {};
 
 
 colorsHandler.createColor = async(req, res) =>{
-  
+
+  const response = await colorsController.createColor(req.body);
+
+  if(response.msg === "Color already exist"){
+    res.status(500).json(response);
+  }else{
+    res.status(200).json(response);
+  }
 };
 
 
 colorsHandler.deleteColor = async(req, res) =>{
-// El usuario puede cancelar su orden, o el admin puede cancelarla en caso de falta de stock
 
+  const response = await colorsController.deleteColor(req.params.id);
+
+  if(response.msg === "Color not found"){
+    res.status(500).json(response);
+  }else{
+    res.status(200).json(response);
+  }
 
 };
 
@@ -18,6 +31,10 @@ colorsHandler.deleteColor = async(req, res) =>{
 
 colorsHandler.getAllColors = async(req, res) =>{
 
+  const response = await colorsController.getAllColors();
+
+  res.status(200).json(response);
+  
 };
 
 
