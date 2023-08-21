@@ -51,12 +51,19 @@ const Users = sequelize.define(
     },
     admin: {
       type: DataTypes.BOOLEAN,
-      defaultValue: false,
+      allowNull: false,
+      defaultValue: false
     },
     avatar: {
       type: DataTypes.STRING,
+      allowNull: false
     },
     googleUser:{
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
+    githubUser:{
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: false

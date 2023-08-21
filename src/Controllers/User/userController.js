@@ -1,9 +1,14 @@
+require("dotenv").config();
 const Users = require("../../Models/UserModel/UserModel");
 const sendMail = require("../../Utils/emailCtrl");
 const generateToken = require("../../Utils/jwtEncode");
+const axios = require("axios");
+const uniqid = require('uniqid'); 
+
+
+const { GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET } = process.env;
 
 const userController = () => {};
-
 
 
 userController.createUser = async(user) =>{
@@ -112,6 +117,67 @@ userController.googleAuth = async(user) =>{
   }
 };
 
+userController.githubAuth = async(gitCode) =>{
+  try{
+    const params = `?client_id=${GITHUB_CLIENT_ID}&client_secret=${GITHUB_CLIENT_SECRET}&code=${gitCode}`;
+    
+    // OBTENEMOS TOKEN
+    const getAccessToken = await axios.post(`https://github.com/login/oauth/access_token${params}`, {
+      headers: {
+        "Accept": "application/json"
+      }
+    });
+
+    // PARSEAMOS EL TOKEN
+    const accessToken = getAccessToken.data.split("=")[1].split("&")[0];
+    
+
+    // OBTENEMOS DATOS Y EMAIL
+    const getUserData = await axios("https:/api.github.com/user", {
+      headers: {
+        "Authorization": `Bearer ${accessToken}`
+      }
+    });
+
+    const getUserEmail = await axios("https:/api.github.com/user/emails", {
+      headers: {
+        "Authorization": `Bearer ${accessToken}`
+      }
+    });
+
+
+    // LOGIN OR REGISTER
+
+    const userRegistered = await Users.findOne({
+      where:{
+        email: getUserEmail.data[0].email
+      }
+    });
+    if(userRegistered){
+      // Already registered, so we log the user.
+      return {msg: "Github user logged", data: userRegistered}
+    };
+
+    // Not registered, so we register the user.
+    const createUser = await Users.create({
+      userName: getUserData.data.login,
+      avatar: "/images/githubUser.svg",
+      email: getUserEmail.data[0].email,
+      githubUser: true,
+      googleUser: false,
+      password: uniqid(),
+      firstName: "-github",
+      lastName: "-github"
+    })   
+
+    return {msg: "Github user created", data: createUser.dataValues}
+    
+
+  }catch(error){
+    console.log(error);
+  }
+};
+
 userController.updateUser = async(newUser, userId) =>{
   try{
     
@@ -144,8 +210,7 @@ userController.deleteUser = async(userId) =>{
       }
     });
 
-    console.log(deleteUser);
-    return {msg: "User deleted"};
+    return {msg: "User deleted", data: userId};
   }catch(error){
     console.log(error);
   }
@@ -191,18 +256,35 @@ userController.disableUser = async(userId) =>{
   // esta en TRUE, la pone en FALSE, y viceversa.
 };
 
-
-userController.getAllUsers = async() =>{
+userController.getUser = async(email) =>{
   try{
-    const getAllUsers = await Users.findAll();
+    const getUser = await Users.findOne({
+      where: {
+        email: email
+      }
+    });
 
-    return getAllUsers;
+    if(!getUser){
+      return {msg: "User not found"}
+    }
+
+    return {msg: "User found", data: getUser};
 
   }catch(error){
     console.log(error);
   }
 };
 
+userController.getAllUsers = async() =>{
+  try{
+    const getAllUsers = await Users.findAll();
+
+    return {data: getAllUsers};
+
+  }catch(error){
+    console.log(error);
+  }
+};
 
 userController.forgotPassword = async(userEmail) =>{
   try{

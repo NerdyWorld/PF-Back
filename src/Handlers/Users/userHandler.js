@@ -38,6 +38,13 @@ userHandler.googleAuthHandler = async(req, res) =>{
   }
 };
 
+userHandler.githubAuthHandler = async(req, res) =>{
+  
+  const response = await userController.githubAuth(req.params.gitCode);
+  
+  res.status(200).json(response);
+
+};
 
 
 userHandler.updateUserHandler = async(req, res) =>{
@@ -69,6 +76,17 @@ userHandler.disableUserHandler = async(req, res) =>{
     res.status(200).json(response);
   }
 
+};
+
+userHandler.getUserHandler = async(req, res) =>{
+
+  const response = await userController.getAllUsers(req.body.email);
+
+  if(response.msg === "User not found"){
+    res.status(500).json(response);
+  }else{
+    res.status(200).json(response);
+  }
 };
 
 userHandler.getAllUsersHandler = async(req, res) =>{
