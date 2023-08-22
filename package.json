@@ -10,6 +10,8 @@
   "author": "BLS-MCI",
   "license": "MIT",
   "dependencies": {
+    "@google-cloud/translate": "^8.0.1",
+    "axios": "^1.4.0",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
@@ -19,6 +21,8 @@
     "nodemailer": "^6.9.4",
     "nodemailer-express-handlebars": "^6.1.0",
     "pg": "^8.11.3",
-    "sequelize": "^6.32.1"
+    "sequelize": "^6.32.1",
+    "stripe": "^13.2.0",
+    "uniqid": "^5.4.0"
   }
 }

@@ -11,18 +11,15 @@ const Products = sequelize.define(
     },
     name: {
       type: DataTypes.STRING,
+      unique: true,
       allowNull: false,
-    },
-    price: {
-      type: DataTypes.INTEGER,
-      allowNull: false
     },
     brand: {
       type: DataTypes.STRING,
       allowNull: false
     },
     color: {
-      type: DataTypes.STRING,
+      type: DataTypes.ARRAY(DataTypes.STRING),
       allowNull: false
     },
     categories: {
@@ -30,22 +27,43 @@ const Products = sequelize.define(
       allowNull: false
     },
     images: {
-      type: DataTypes.ARRAY(DataTypes.TEXT),
-      allowNull: false
+      type: DataTypes.TEXT, 
+      get: function() {
+          return JSON.parse(this.getDataValue('images'));
+      }, 
+      set: function(val) {
+          return this.setDataValue('images', JSON.stringify(val));
+      }
     },
     stock: {
-      type: DataTypes.INTEGER,
-      allowNull: false
-    },
-    sold: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      defaultValue: 0
+      type: DataTypes.TEXT, 
+      get: function() {
+          return JSON.parse(this.getDataValue('stock'));
+      }, 
+      set: function(val) {
+          return this.setDataValue('stock', JSON.stringify(val));
+      }
     },
     description: {
       type: DataTypes.TEXT,
       allowNull: false
     },
+    priceARS: {
+      type: DataTypes.FLOAT,
+      allowNull: false
+    },
+    priceUSD: {
+      type: DataTypes.FLOAT,
+      allowNull: false
+    },
+    priceEU: {
+      type: DataTypes.FLOAT,
+      allowNull: false
+    },
+    SKU: {
+      type: DataTypes.STRING,
+      allowNull: false
+    }
   
   },
   {

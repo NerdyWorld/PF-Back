@@ -27,6 +27,26 @@ userHandler.loginUserHandler = async(req, res) =>{
   }
 };
 
+userHandler.googleAuthHandler = async(req, res) =>{
+  
+  const response = await userController.googleAuth(req.body);
+
+  if(response.msg === "Account already associated with Google Email"){
+    res.status(500).json(response);
+  }else{
+    res.status(200).json(response);
+  }
+};
+
+userHandler.githubAuthHandler = async(req, res) =>{
+  
+  const response = await userController.githubAuth(req.params.gitCode);
+  
+  res.status(200).json(response);
+
+};
+
+
 userHandler.updateUserHandler = async(req, res) =>{
 
   const response = await userController.updateUser(req.body, req.params.userId);
@@ -58,15 +78,23 @@ userHandler.disableUserHandler = async(req, res) =>{
 
 };
 
+userHandler.getUserHandler = async(req, res) =>{
+
+  const response = await userController.getAllUsers(req.body.email);
+
+  if(response.msg === "User not found"){
+    res.status(500).json(response);
+  }else{
+    res.status(200).json(response);
+  }
+};
+
 userHandler.getAllUsersHandler = async(req, res) =>{
 
   const response = await userController.getAllUsers();
 
   res.status(200).json(response);
 };
-
-
-
 
 userHandler.forgotPasswordHandler = async(req, res) =>{
 

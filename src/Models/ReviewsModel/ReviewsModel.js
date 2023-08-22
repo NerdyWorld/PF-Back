@@ -24,6 +24,10 @@ const Reviews = sequelize.define(
     review:{
       type: DataTypes.TEXT,
       allowNull: false
+    },
+    banned:{
+      type: DataTypes.BOOLEAN,
+      allowNull: false
     }
 
   },
