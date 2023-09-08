@@ -18,7 +18,11 @@ const Products = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false
     },
-    color: {
+    colors: {
+      type: DataTypes.ARRAY(DataTypes.STRING),
+      allowNull: false
+    },
+    sizes: {
       type: DataTypes.ARRAY(DataTypes.STRING),
       allowNull: false
     },
@@ -48,15 +52,7 @@ const Products = sequelize.define(
       type: DataTypes.TEXT,
       allowNull: false
     },
-    priceARS: {
-      type: DataTypes.FLOAT,
-      allowNull: false
-    },
-    priceUSD: {
-      type: DataTypes.FLOAT,
-      allowNull: false
-    },
-    priceEU: {
+    price: {
       type: DataTypes.FLOAT,
       allowNull: false
     },

@@ -1,3 +1,6 @@
+const axios = require("axios");
+const uniqId = require("uniqid");
+
 const Products = require("../../Models/ProductModel/productModel");
 
 const productController = () => {};
@@ -79,6 +82,35 @@ productController.deleteProduct = async(productId) =>{
     await findProduct.destroy();
 
     return {msg:"Product deleted", data: productId};
+
+  }catch(error){
+    console.log(error);
+  }
+}
+
+
+productController.fetchProductsToDb = async() =>{
+  try{
+    const filteredProducts = [];
+    const getProducts = await axios("https://fashionapi.up.railway.app/all/blsmgfdk2512196430032000");
+    
+    (async()=>{
+      getProducts.data.map(async(product) => {
+        const findProduct = filteredProducts.find(el => el.name === product.name);
+          
+        if(!findProduct) filteredProducts.push(product);
+      });
+    })();
+
+    if(filteredProducts.length){
+      filteredProducts.map(async(product) => {
+        product.SKU = uniqId();
+      
+        await Products.create(product);
+      })
+    };
+
+    return {msg:"Products Fetched to Db"};
 
   }catch(error){
     console.log(error);

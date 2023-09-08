@@ -4,6 +4,8 @@ const sendMail = require("../../Utils/emailCtrl");
 const generateToken = require("../../Utils/jwtEncode");
 const axios = require("axios");
 const uniqid = require('uniqid'); 
+const bcrypt = require('bcrypt');
+
 
 
 const { GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET } = process.env;
@@ -27,13 +29,24 @@ userController.createUser = async(user) =>{
     });
 
     if(validateEmail){
-      return {msg: "Email Error"}
+      if(validateEmail.googleUser){
+        return {msg: "There is a Google Account associated with this email, try logging in with Google!"}
+      };
+      if(validateEmail.githubUser){
+        return {msg: "There is a GitHub Account associated with this email, try logging in with GitHub!"}
+      };
+
+      return {msg: "There is an account associated with this email!"}
     };
     if(validateUsername){
       return {msg: "Username Error"}
     }
 
     // CREATE THE USER
+    const hashedPassword = bcrypt.hash(user.password, 10, (err, hash)=>{
+      user.password = hash;
+    });
+
     const createUser = await Users.create(user);
 
     return {msg: "User created", data: createUser.dataValues};
@@ -63,21 +76,30 @@ userController.loginUser = async(user) =>{
 
     if(!findUserByEmail && !findUserByUsername){
       if(credential.includes("@")){
-        return {msg: "Wrong Email"}
+        return {msg: "Email Incorrect"}
       }else{
-        return {msg: "Wrong Username"}
+        return {msg: "Username Incorrect"}
       }
     };
 
     if(findUserByEmail || findUserByUsername){
       const userFound = findUserByEmail ? findUserByEmail : findUserByUsername;
+      if(userFound.googleUser){
+        return {msg: "This email is associated with a Google account, please try logging in with Google"}
+      };
+      if(userFound.githubUser){
+        return {msg: "This email is associated with a GitHub account, please try logging in with GitHub"}
+      }
 
-      if(userFound.password === password){
+      // If is not associated with a Google or Github account
+      const match = await bcrypt.compare(password, userFound.dataValues.password);
+      if(match) {
         // Logged succesfully
-        return {msg: "User logged", data: userFound}
+        const encodedUserId = generateToken(userExist.dataValues.id);
+        return {msg: "User logged", data: {...userFound.dataValues, encodedId: encodedUserId}}
       }else{
         // Wrong Password
-        return {msg: "Wrong Password"};
+        return {msg: "Password Incorrect"};
       }
     }
 
@@ -88,6 +110,8 @@ userController.loginUser = async(user) =>{
 };
 
 userController.googleAuth = async(user) =>{
+  console.log(user);
+  
   try{
     const userExist = await Users.findOne({
       where: {
@@ -100,16 +124,39 @@ userController.googleAuth = async(user) =>{
       return {msg: "Account already associated with Google Email"};
     };
 
-    // REGISTERED
+     // LOG USER
+     if(userExist && userExist.googleUser){
+
+      const encodedUserId = generateToken(userExist.dataValues.id);
+
+      await userExist.update({
+        logged: true
+      });
+
+      await userExist.save();
+      console.log(userExist);
+
+      return {msg: "Google user logged", data: {...userExist.dataValues, encodedId: encodedUserId}}
+    }
+
+    // REGISTER USER
     if(!userExist){
-      const createUser = await Users.create(user);
+      const createUser = await Users.create({
+        userName: user.userName,
+        firstName: user.firstName || "-google",
+        lastName: user.lastName || "-google",
+        email: user.email,
+        password: uniqid(),
+        avatar: "/images/googleLogo.svg",
+        googleUser: true,
+        logged: true,
+        verified: true
+      });
 
-      return {msg: "Google user created", data: createUser.dataValues};
-    };
+      const encodedUserId = generateToken(createUser.dataValues.id);
+      console.log(createUser.dataValues);
 
-    // LOGGED
-    if(userExist && userExist.googleUser){
-      return {msg: "User logged", data: userExist}
+      return {msg: "Google user created", data: {...createUser.dataValues, encodedId: encodedUserId}};
     }
 
   }catch(error){
@@ -153,9 +200,21 @@ userController.githubAuth = async(gitCode) =>{
         email: getUserEmail.data[0].email
       }
     });
+    if(userRegistered && !userRegistered.githubUser){
+      return {msg: "There is an account associated with your GitHub email, please try logging in manually!"}
+    }
     if(userRegistered){
       // Already registered, so we log the user.
-      return {msg: "Github user logged", data: userRegistered}
+      const encodedUserId = generateToken(userExist.dataValues.id);
+
+      await userRegistered.update({
+        logged: true
+      });
+
+      await userRegistered.save();
+
+
+      return {msg: "Github user logged", data: {...userRegistered, encodedId: encodedUserId}}
     };
 
     // Not registered, so we register the user.
@@ -167,10 +226,14 @@ userController.githubAuth = async(gitCode) =>{
       googleUser: false,
       password: uniqid(),
       firstName: "-github",
-      lastName: "-github"
-    })   
+      lastName: "-github",
+      logged: true,
+      verified: true
+    });
 
-    return {msg: "Github user created", data: createUser.dataValues}
+    const encodedUserId = generateToken(createUser.dataValues.id);
+    
+    return {msg: "Github user created", data: {...createUser.dataValues, encodedId: encodedUserId}}
     
 
   }catch(error){
@@ -179,11 +242,11 @@ userController.githubAuth = async(gitCode) =>{
 };
 
 userController.updateUser = async(newUser, userId) =>{
+  // return console.log(newUser);
   try{
-    
     const findUser = await Users.findOne({
       where:{
-        id: userId
+        id: userId.toString()
       }
     });
 
@@ -191,11 +254,19 @@ userController.updateUser = async(newUser, userId) =>{
       return {msg: "No user found"}
     };
 
+    if(newUser.password){
+      bcrypt.hash(newUser.password, 10, (err, hash)=> {
+        newUser.password = hash;
+      });
+    };
+
     await findUser.update(newUser);
 
     await findUser.save();
 
-    return {msg: "User updated", data: findUser};
+    const getAllUsers = await Users.findAll();
+
+    return {msg: "User updated", data: findUser, allData: getAllUsers};
 
   }catch(error){
     console.log(error);
@@ -256,11 +327,11 @@ userController.disableUser = async(userId) =>{
   // esta en TRUE, la pone en FALSE, y viceversa.
 };
 
-userController.getUser = async(email) =>{
+userController.getUser = async(userId) =>{
   try{
     const getUser = await Users.findOne({
       where: {
-        email: email
+        id: userId
       }
     });
 
@@ -504,5 +575,114 @@ userController.forgotPassword = async(userEmail) =>{
     console.log(error);
   }
 };
+
+userController.favToggle = async(item, userId) =>{
+  try{
+    const findUser = await Users.findOne({
+      where:{
+        id: userId
+      }
+    });
+
+    if(!findUser){
+      return {msg: "User not found"}
+    }
+
+  let favorites = findUser.favorites || [];
+
+  if(!favorites.length){
+    // Si no hay nada en favoritos, agrega directo
+    favorites.push(item);
+    await findUser.update({
+      favorites
+    });
+    await findUser.save();
+    return {msg: "Item added to favs", data: findUser};
+
+  }else if(favorites.length){
+    // Si hay items en favoritos, valida si el item ya existe
+    const findItem = favorites.find(el => el.id === item.id);
+
+    if(findItem){
+      // Si el item existe lo saca
+      let filter = favorites.filter(el => el.id !== findItem.id);
+      favorites = filter;
+
+      await findUser.update({
+        favorites
+      });
+      await findUser.save();
+      return {msg: "Item removed from favs", data: findUser};
+    }else if(!findItem){
+      // Si el item no existe lo agrega
+      favorites.push(item);
+      await findUser.update({
+        favorites
+      });
+      await findUser.save();
+      return {msg: "Item added to favs", data: findUser};
+    }
+  };
+
+
+  }catch(error){
+    console.log(error);
+  }
+};
+
+userController.cartToggle = async(item, userId) =>{
+  try{
+    const findUser = await Users.findOne({
+      where:{
+        id: userId
+      }
+    });
+
+    if(!findUser){
+      return {msg: "User not found"}
+    }
+
+  let cart = findUser.cart || [];
+
+  if(!cart.length){
+    // Si no hay nada en favoritos, agrega directo
+    cart.push(item);
+    await findUser.update({
+      cart
+    });
+    await findUser.save();
+    return {msg: "Item added to cart", data: findUser};
+
+  }else if(cart.length){
+    // Si hay items en favoritos, valida si el item ya existe
+    const findItem = cart.find(el => el.id === item.id);
+
+    if(findItem){
+      // Si el item existe lo saca
+      let filter = cart.filter(el => el.id !== findItem.id);
+      cart = filter;
+
+      await findUser.update({
+        cart
+      });
+      await findUser.save();
+      return {msg: "Item removed from cart", data: findUser};
+    }else if(!findItem){
+      // Si el item no existe lo agrega
+      cart.push(item);
+      await findUser.update({
+        cart
+      });
+      await findUser.save();
+      return {msg: "Item added to cart", data: findUser};
+    }
+  };
+
+
+  }catch(error){
+    console.log(error);
+  }
+};
+
 
 module.exports = userController;

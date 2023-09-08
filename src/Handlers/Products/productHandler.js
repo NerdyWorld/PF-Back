@@ -47,4 +47,16 @@ productHandler.deleteProduct = async(req, res) =>{
 }
 
 
+productHandler.fetchProductToDb = async(req, res) =>{
+
+  const response = await productController.fetchProductsToDb();
+
+  if(response.msg === "Error fetching the product, check if the token is present on params!"){
+    res.status(500).json(response);
+  }else{
+    res.status(200).json(response);
+  }
+}
+
+
 module.exports = productHandler;

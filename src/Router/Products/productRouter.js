@@ -11,5 +11,8 @@ productRouter.delete("/delete/:productId", productHandler.deleteProduct)
 productRouter.get("/get-all-products", productHandler.getAllProducts)
 
 
+productRouter.get("/fetch-products-to-db", productHandler.fetchProductToDb)
+
+
 
 module.exports = productRouter;

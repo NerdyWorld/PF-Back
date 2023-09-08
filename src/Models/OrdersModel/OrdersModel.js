@@ -25,10 +25,6 @@ const Orders = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    contact: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
     shippingAddress:{
       type: DataTypes.TEXT,
       allowNull: false
