@@ -17,6 +17,8 @@ userRouter.delete("/delete/:userId", userHandler.deleteUserHandler)
 userRouter.post("/get-users", userHandler.getUserHandler)
 userRouter.get("/get-all-users", userHandler.getAllUsersHandler)
 userRouter.post("/forgot-password", userHandler.forgotPasswordHandler)
+userRouter.put("/fav-toggle/:userId", userHandler.favToggleHandler)
+userRouter.put("/cart-toggle/:userId", userHandler.cartToggleHandler)
 
 
 module.exports = userRouter;

@@ -6,11 +6,13 @@ const stripeRouter = Router();
 
 // WE GET OUR CLIENT SECRET
 stripeRouter.post("/create-payment-intent", async(req, res)=>{
-  console.log(req.body);
+
+  const { currency, amount } = req.body.data;
+
   try{
     const paymentIntent = await stripe.paymentIntents.create({
-      currency: "eur",
-      amount: 1900,
+      currency: currency,
+      amount: amount,
       automatic_payment_methods: { enabled: true }
     });
 

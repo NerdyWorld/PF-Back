@@ -68,6 +68,19 @@ const Users = sequelize.define(
       allowNull: false,
       defaultValue: false
     },
+    logged: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
+    genre: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    birthday: {
+      type: DataTypes.DATE,
+      allowNull: false 
+    },
     disabled: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
@@ -75,7 +88,7 @@ const Users = sequelize.define(
     },
   },
   {
-    timestamps: false,
+    timestamps: true,
   }
 );
 

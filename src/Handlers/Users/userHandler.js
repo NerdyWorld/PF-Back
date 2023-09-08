@@ -80,7 +80,7 @@ userHandler.disableUserHandler = async(req, res) =>{
 
 userHandler.getUserHandler = async(req, res) =>{
 
-  const response = await userController.getAllUsers(req.body.email);
+  const response = await userController.getUser(req.body.userId);
 
   if(response.msg === "User not found"){
     res.status(500).json(response);
@@ -103,6 +103,27 @@ userHandler.forgotPasswordHandler = async(req, res) =>{
   console.log(response);
 };
 
+userHandler.favToggleHandler = async(req, res) =>{
+
+  const response = await userController.favToggle(req.body, req.params.userId);
+
+  if(response.msg === "User not found"){
+    res.status(500).json(response);
+  }else{
+    res.status(200).json(response);
+  }
+};
+
+userHandler.cartToggleHandler = async(req, res) =>{
+
+  const response = await userController.cartToggle(req.body, req.params.userId);
+
+  if(response.msg === "User not found"){
+    res.status(500).json(response);
+  }else{
+    res.status(200).json(response);
+  }
+};
 
 
 
