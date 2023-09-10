@@ -205,7 +205,7 @@ userController.githubAuth = async(gitCode) =>{
     }
     if(userRegistered){
       // Already registered, so we log the user.
-      const encodedUserId = generateToken(userExist.dataValues.id);
+      const encodedUserId = generateToken(userRegistered.dataValues.id);
 
       await userRegistered.update({
         logged: true
@@ -553,8 +553,8 @@ userController.forgotPassword = async(userEmail) =>{
           </div>
           <div class="bottom">
             <p>Problems or questions? Please call us at <a class="href1" href="tel:+5493813003200">+54 9 3813003200</a></p>
-            <p>or email us at <a class="href2" href="mailto:tekitekihenry@gmail.com">tekitekihenry@gmail.com</a></p>
-            <p class="p2">3003 Tekinapolis Street, Tekilandia, TK 3333</p>
+            <p>or email us at <a class="href2" href="mailto:rivellecompany@gmail.com">rivellecompany@gmail.com</a></p>
+            <p class="p2">3003 Fashionapolis Street, Rivelandia, TK 3333</p>
           </div>
         </div>
       </div>
@@ -563,8 +563,9 @@ userController.forgotPassword = async(userEmail) =>{
 
     let data = {
       to: findUser.email,
-      subject: `TekiTeki Support`,
+      subject: `Rivélle Support`,
       html: HTML,
+      type: "forgotPasword"
     };
 
     sendMail(data);
@@ -678,6 +679,279 @@ userController.cartToggle = async(item, userId) =>{
     }
   };
 
+
+  }catch(error){
+    console.log(error);
+  }
+};
+
+userController.sendActivationCode = async(data) =>{
+  try{
+    console.log(data);
+    const {email, activationCode, firstName} = data;
+    if(!email || !activationCode || !firstName){
+      return {msg: "Missing fields"};
+    };
+
+    let HTML = `
+    <!DOCTYPE html>
+      <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Handlee&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100;200;300;400&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Raleway&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700&display=swap" rel="stylesheet">
+        <style>
+
+          *{
+            margin: 0;
+          }
+
+          body{
+            align-items: center;
+            width: 100%;
+            overflow: auto;
+          }
+
+          .body{
+            background-color: white;
+            width: 50%;
+            margin-left: auto;
+            margin-right: auto;
+            padding-bottom: 1rem;
+          }
+          
+          .header{
+          margin-bottom: 2rem;
+          }
+
+          .header h2{
+            font-family: Lexend;
+            text-align: center;
+            text-transform: uppercase;
+            font-weight: 500;
+            letter-spacing: 2.5px;
+            padding-top: 2rem;
+          }
+
+          .header-bottom{
+            padding-top: 2.5rem;
+            text-align: center;
+            border-bottom: 1px solid rgb(208, 206, 203);
+            font-family: Roboto;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding-bottom: 0.5rem;
+          }
+
+          .header-bottom a{
+            text-decoration: none;
+            color: #1f1f1f;
+            padding: 0rem 1rem;
+            border-right: 1px solid rgb(208, 206, 203);
+          }
+
+          .message{
+            font-family: Roboto;
+            font-weight: 400;
+            font-size: 12px;
+            letter-spacing: 1px;
+            color: #1f1f1f;
+          }
+
+          .message p{
+            margin-bottom: 20px;
+          }
+
+          .message ul{
+            margin-bottom: 1rem;
+            padding: 0rem;
+            padding-left: 1rem;
+            list-style-type: square;
+          }
+
+          .message ul li{
+            margin-bottom: 0.5rem;
+          }
+
+          .message a{
+            color: #19110b;
+          }
+
+          .bottom{
+            margin-top: 4rem;
+            background-color: #f4f4f4;
+            font-family: Roboto;
+            font-size: 11px;
+            letter-spacing: 1px;
+            color: #777777;
+            padding: 1.5rem 3rem;
+          }
+
+          .bottomItem1{
+            text-align: center;
+            margin-left: auto;
+            margin-right: 20px;
+          }
+
+          .bottomItem2{
+            text-align: center;
+            margin-left: 20px;
+            margin-right: auto;
+          }
+
+          .bottomItem1 p, .bottomItem2 p{
+            margin-top: 1vh;
+          }
+
+          .bottomItem img{
+            margin-bottom: 5px;
+          }
+
+          .bottomDiv{
+            border-bottom: 1px solid #bbb9b9;
+            padding: 1.5rem 0rem;
+            display: flex;
+          }
+
+          .bottomDiv2{
+            padding: 1.5rem 2rem;
+            text-align: center;
+            margin-top: 1rem;
+          }
+
+          .p1{
+            margin-bottom: 1rem;
+          }
+
+          .p2{
+            line-height: 20px;
+          }
+
+          .p1, .p2{
+            font-size: 10px;
+          }
+
+          .bottomDiv2 a{
+            color: #19110b;
+          }
+
+          .noBorder{
+            border-right: none !important;
+          }
+
+        </style>
+      </head>
+      <body>
+        <div class="body">
+          <div class="header">
+            <h2>Rivélle Company</h2>
+            <div class="header-bottom">
+              <a href="https://rivelle.netlify.app/home">Home</a>
+              <a href="https://rivelle.netlify.app/store">Store</a>
+              <a href="https://rivelle.netlify.app/collections/gucci">Gucci</a>
+              <a href="https://rivelle.netlify.app/collections/louisVuitton">LV</a>
+              <a href="https://rivelle.netlify.app/collections/jimmyChoo" class="noBorder">Jimmy Choo</a>
+            </div>
+          </div>
+          <div class="message">
+              <p>Dear ${firstName},</p>
+              <p>Welcome to Rivelle. Your Rivelle account enables you to:</p>
+              <ul>
+                <li>Follow your online orders and access your purchase history and e-receipts</li>
+                <li>Manage your personal information</li>
+                <li>Receive the latest Rivelle digital communication</li>
+                <li>Create your personal wishlist</li>
+              </ul>
+        
+              <p>To complete your account creation, please enter the following verification code: <b>${activationCode}</b></p>
+        
+              <p>Your secured account will be registered with the following information:</p>
+        
+              <p>Email: <a href="mailto:${email}">${email}</a></p>
+        
+              <p>Experience the complete Louis Vuitton universe at <a href="https://rivelle.netlify.app">rivelle.netlify.app</a></p>
+          </div>
+          <div class="bottom">
+            <div class="bottomDiv">
+              <div class="bottomItem1">
+                <a href="mailto:rivellecompany@gmail.com"><img src="cid:email" alt="abc" width="25"></a>
+                <p>Email Us</p>
+              </div>
+              <div class="bottomItem2">
+                <a href="tel:+1786300300"><img src="cid:phone" alt="abc" width="25"></a>
+                <p>+1.786.RIVELLE</p>
+              </div>
+            </div>
+            <div class="bottomDiv2">
+              <p class="p1">Copyright © 2023 Rivelle Company</p>
+              <p class="p2">
+                You have the right to access, modify and cancel your personal information.
+                To do so, please send an e-mail to <a href="mailto:rivellecompany@gmail.com">rivellecompany@gmail.com</a>
+              </p>
+            </div>
+          </div>
+      </body>
+      </html>
+    `;
+
+    let dataSource = {
+      to: email,
+      subject: `Welcome to Rivelle!`,
+      html: HTML,
+      type: "activationCode"
+    };
+
+    sendMail(dataSource);
+
+    return {msg: "Activation code sent"};
+
+  }catch(error){
+    console.log(error);
+  }
+};
+
+userController.validateCredentials = async(data) =>{
+  try{
+    const { email, username } = data;
+
+    const findByEmail = await Users.findOne({
+      where:{
+        email
+      }
+    });
+
+    const findByUsername = await Users.findOne({
+      where: {
+        userName: username
+      }
+    });
+
+
+    if(findByUsername){
+      return {msg: "Username in use"};
+    };
+
+    if(findByEmail){
+      return {msg: "Email in use"};
+    };
+
+    if(findByEmail && findByEmail.dataValues.googleUser){
+      return {msg: "Email in use with Google"}
+    };
+
+    if(findByEmail && findByEmail.dataValues.githubUser){
+      return {msg: "Email in use with Github"}
+    };
+
+    return {msg: "Credentials available"};
 
   }catch(error){
     console.log(error);

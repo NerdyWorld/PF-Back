@@ -24,10 +24,21 @@ try{
     to: data.to, 
     subject: data.subject,
     html: data.html,
-    attachments: [
+    attachments: data.type === "activationCode" ? [
       {
-        filename: "passwordImage.png",
-        path: "./images/passwordImage.png",
+        filename: "email.png",
+        path: "./images/email.png",
+        cid: "email"
+      },
+      {
+        filename: "phone.png",
+        path: "./images/phone.png",
+        cid: "phone"
+      },
+    ] : data.type === "forgotPassword" ? [
+      {
+        filename: "password.png",
+        path: "./images/password.png",
         cid: "password"
       },
       {
@@ -44,8 +55,8 @@ try{
         filename: "twitter.png",
         path: "./images/twitter.png",
         cid: "twitter"
-      },
-    ] 
+      }
+    ] : []
   });
 
 }catch(err){
