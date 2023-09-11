@@ -75,11 +75,11 @@ const Users = sequelize.define(
     },
     genre: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: true
     },
     birthday: {
       type: DataTypes.DATE,
-      allowNull: false 
+      allowNull: true
     },
     disabled: {
       type: DataTypes.BOOLEAN,
