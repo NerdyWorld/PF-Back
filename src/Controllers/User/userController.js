@@ -150,7 +150,8 @@ userController.googleAuth = async(user) =>{
         avatar: "/images/googleLogo.svg",
         googleUser: true,
         logged: true,
-        verified: true
+        verified: true,
+        genre: "Male"
       });
 
       const encodedUserId = generateToken(createUser.dataValues.id);
@@ -228,7 +229,8 @@ userController.githubAuth = async(gitCode) =>{
       firstName: "-github",
       lastName: "-github",
       logged: true,
-      verified: true
+      verified: true,
+      genre: "Male"
     });
 
     const encodedUserId = generateToken(createUser.dataValues.id);
