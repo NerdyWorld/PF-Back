@@ -151,7 +151,8 @@ userController.googleAuth = async(user) =>{
         googleUser: true,
         logged: true,
         verified: true,
-        genre: "Male"
+        genre: "Male",
+        birthday: "333"
       });
 
       const encodedUserId = generateToken(createUser.dataValues.id);
@@ -230,7 +231,8 @@ userController.githubAuth = async(gitCode) =>{
       lastName: "-github",
       logged: true,
       verified: true,
-      genre: "Male"
+      genre: "Male",
+      birthday: "333"
     });
 
     const encodedUserId = generateToken(createUser.dataValues.id);
