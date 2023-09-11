@@ -19,6 +19,8 @@ userRouter.get("/get-all-users", userHandler.getAllUsersHandler)
 userRouter.post("/forgot-password", userHandler.forgotPasswordHandler)
 userRouter.put("/fav-toggle/:userId", userHandler.favToggleHandler)
 userRouter.put("/cart-toggle/:userId", userHandler.cartToggleHandler)
+userRouter.post("/activationCode", userHandler.sendActivationCodeHandler)
+userRouter.post("/validateCredentials", userHandler.validateCredentialsHandler)
 
 
 module.exports = userRouter;

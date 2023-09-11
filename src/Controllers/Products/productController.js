@@ -1,5 +1,8 @@
 const axios = require("axios");
 const uniqId = require("uniqid");
+const { Op } = require('sequelize');
+
+const Colors = require("../../Models/ColorsModel/colorsModel");
 
 const Products = require("../../Models/ProductModel/productModel");
 
@@ -8,7 +11,26 @@ const productController = () => {};
 
 productController.getAllProducts = async() =>{
   try{
+    // Para poner colores en la db
+    // let colorsArray = [];
+    // const getProducts = await Products.findAll();
+    // getProducts.map(product => {
+    //     product.colors.map(color => {
+    //       const findColor = colorsArray.find(item => item === color);
+    //       if(!findColor){
+    //         colorsArray.push(color);
+    //       }
+    //   })
+    // });
+
+    // colorsArray.map(async(el) => {
+    //   const createColor = await Colors.create({
+    //     name: el
+    //   });
+    // });
+
     const getProducts = await Products.findAll();
+
 
     return {data: getProducts};
   }catch(error){
@@ -111,6 +133,91 @@ productController.fetchProductsToDb = async() =>{
     };
 
     return {msg:"Products Fetched to Db"};
+
+  }catch(error){
+    console.log(error);
+  }
+}
+
+
+productController.filterProducts = async(fields) =>{
+
+  const { brand, category, color, priceMin, priceMax } = fields;
+
+  try{
+    let filteredProducts = [];
+
+    if(category){
+      const filter = await Products.findAll({
+        where: {
+          categories: {
+            [Op.contains]: [category]
+          }
+        }
+      });
+      if(!filter.length){
+        return {msg: "No products found"};
+      }else{
+        filteredProducts = filter;
+      };
+    }
+    if(color){
+      if(filteredProducts.length){
+        const filter = filteredProducts.filter(el => el.colors.includes(color));
+
+        if(!filter.length){
+          return {msg: "No products found"};
+        }else{
+          filteredProducts = filter;
+        };
+      }else{
+        const filter = await Products.findAll({
+          where: {
+            colors: {
+              [Op.contains]: [color]
+            }
+          }
+        });
+        if(!filter.length){
+          return {msg: "No products found"};
+        }else{
+          filteredProducts = filter;
+        };
+      }
+    };
+    if(priceMin && priceMax){
+      if(filteredProducts.length){
+        const filter = filteredProducts.filter(el => Number(el.price) > priceMin && Number(el.price) < priceMax);
+
+        if(!filter.length){
+          return {msg: "No products found"};
+        }else{
+          filteredProducts = filter;
+        };
+      }else{
+        const filter = await Products.findAll({
+          where: {
+            colors: {
+              [Op.contains]: [color]
+            }
+          }
+        });
+        if(!filter.length){
+          return {msg: "No products found"};
+        }else{
+          filteredProducts = filter;
+        };
+      }
+    };
+
+    const filterByBrand = filteredProducts.filter(el => el.brand === brand);
+    if(!filterByBrand.length){
+      return {msg: "No products found"};
+    }
+
+
+    return {msg: "Products filtered", data: filteredProducts, length: filteredProducts.length};
+    
 
   }catch(error){
     console.log(error);

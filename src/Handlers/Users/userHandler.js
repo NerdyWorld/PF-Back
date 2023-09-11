@@ -125,6 +125,26 @@ userHandler.cartToggleHandler = async(req, res) =>{
   }
 };
 
+userHandler.sendActivationCodeHandler = async(req, res) =>{
+
+  const response = await userController.sendActivationCode(req.body);
+
+  if(response.msg === "Missing fields"){
+    console.log(response);
+    res.status(500).json(response);
+  }else{
+    res.status(200).json(response);
+  }
+};
+
+userHandler.validateCredentialsHandler = async(req, res) =>{
+
+  const response = await userController.validateCredentials(req.body);
+
+    res.status(200).json(response);
+  
+};
+
 
 
 
