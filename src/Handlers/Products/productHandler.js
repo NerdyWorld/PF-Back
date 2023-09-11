@@ -64,7 +64,7 @@ productHandler.filterProducts = async(req, res) =>{
   const response = await productController.filterProducts(req.body);
 
   if(response.msg === "No products found"){
-    res.status(500).json(response);
+    res.status(200).json(response);
   }else{
     res.status(200).json(response);
   }

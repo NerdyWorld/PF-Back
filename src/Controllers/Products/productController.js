@@ -143,7 +143,7 @@ productController.fetchProductsToDb = async() =>{
 productController.filterProducts = async(fields) =>{
 
   const { brand, category, color, priceMin, priceMax } = fields;
-
+  console.log(brand);
   try{
     let filteredProducts = [];
 
@@ -156,7 +156,7 @@ productController.filterProducts = async(fields) =>{
         }
       });
       if(!filter.length){
-        return {msg: "No products found"};
+        return {msg: "No products found", data: []};
       }else{
         filteredProducts = filter;
       };
@@ -166,7 +166,7 @@ productController.filterProducts = async(fields) =>{
         const filter = filteredProducts.filter(el => el.colors.includes(color));
 
         if(!filter.length){
-          return {msg: "No products found"};
+          return {msg: "No products found", data: []};
         }else{
           filteredProducts = filter;
         };
@@ -179,7 +179,7 @@ productController.filterProducts = async(fields) =>{
           }
         });
         if(!filter.length){
-          return {msg: "No products found"};
+          return {msg: "No products found", data: []};
         }else{
           filteredProducts = filter;
         };
@@ -190,29 +190,28 @@ productController.filterProducts = async(fields) =>{
         const filter = filteredProducts.filter(el => Number(el.price) > priceMin && Number(el.price) < priceMax);
 
         if(!filter.length){
-          return {msg: "No products found"};
+          return {msg: "No products found", data: []};
         }else{
           filteredProducts = filter;
         };
       }else{
-        const filter = await Products.findAll({
-          where: {
-            colors: {
-              [Op.contains]: [color]
-            }
-          }
-        });
+        const findAll = await Products.findAll();
+        
+        const filter = findAll.filter(el => Number(el.price) > priceMin && Number(el.price) < priceMax);
+
         if(!filter.length){
-          return {msg: "No products found"};
+          return {msg: "No products found", data: []};
         }else{
           filteredProducts = filter;
-        };
+        }
       }
     };
 
     const filterByBrand = filteredProducts.filter(el => el.brand === brand);
     if(!filterByBrand.length){
-      return {msg: "No products found"};
+      return {msg: "No products found", data: []};
+    }else{
+      filteredProducts = filterByBrand;
     }
 
 
