@@ -10,7 +10,7 @@ userHandler.createUserHandler = async(req, res) =>{
   const response = await userController.createUser(req.body);
 
   if(response.msg === "Email Error" || response.msg === "Username Error"){
-    res.status(500).json(response);
+    res.status(403).json(response);
   }else{
     res.status(200).json(response);
   }
@@ -21,7 +21,7 @@ userHandler.loginUserHandler = async(req, res) =>{
   const response = await userController.loginUser(req.body);
 
   if(response.msg === "Wrong Email" || response.msg === "Wrong Username"){
-    res.status(500).json(response);
+    res.status(403).json(response);
   }else{
     res.status(200).json(response);
   }
@@ -32,7 +32,7 @@ userHandler.googleAuthHandler = async(req, res) =>{
   const response = await userController.googleAuth(req.body);
 
   if(response.msg === "Account already associated with Google Email"){
-    res.status(500).json(response);
+    res.status(200).json(response);
   }else{
     res.status(200).json(response);
   }
@@ -52,7 +52,7 @@ userHandler.updateUserHandler = async(req, res) =>{
   const response = await userController.updateUser(req.body, req.params.userId);
 
   if(response.msg === "User not found"){
-    res.status(500).json(response);
+    res.status(403).json(response);
   }else{
     res.status(200).json(response);
   }
@@ -71,7 +71,7 @@ userHandler.disableUserHandler = async(req, res) =>{
   const response = await userController.disableUser(req.params.userId);
 
   if(response.msg === "User not found"){
-    res.status(500).json(response);
+    res.status(403).json(response);
   }else{
     res.status(200).json(response);
   }
@@ -83,7 +83,7 @@ userHandler.getUserHandler = async(req, res) =>{
   const response = await userController.getUser(req.body.userId);
 
   if(response.msg === "User not found"){
-    res.status(500).json(response);
+    res.status(403).json(response);
   }else{
     res.status(200).json(response);
   }
@@ -108,7 +108,7 @@ userHandler.favToggleHandler = async(req, res) =>{
   const response = await userController.favToggle(req.body, req.params.userId);
 
   if(response.msg === "User not found"){
-    res.status(500).json(response);
+    res.status(403).json(response);
   }else{
     res.status(200).json(response);
   }
@@ -119,7 +119,7 @@ userHandler.cartToggleHandler = async(req, res) =>{
   const response = await userController.cartToggle(req.body, req.params.userId);
 
   if(response.msg === "User not found"){
-    res.status(500).json(response);
+    res.status(403).json(response);
   }else{
     res.status(200).json(response);
   }
@@ -131,7 +131,7 @@ userHandler.sendActivationCodeHandler = async(req, res) =>{
 
   if(response.msg === "Missing fields"){
     console.log(response);
-    res.status(500).json(response);
+    res.status(403).json(response);
   }else{
     res.status(200).json(response);
   }

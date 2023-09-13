@@ -31,7 +31,7 @@ productController.getAllProducts = async() =>{
 
     const getProducts = await Products.findAll();
 
-
+    
     return {data: getProducts};
   }catch(error){
     console.log(error);
