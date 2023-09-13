@@ -43,13 +43,12 @@ userController.createUser = async(user) =>{
     }
 
     // CREATE THE USER
-    const hashedPassword = bcrypt.hash(user.password, 10, (err, hash)=>{
-      user.password = hash;
-    });
+    
+    const hashedPassword = bcrypt.hashSync(user.password, 10);
 
-    const createUser = await Users.create(user);
-
-    return {msg: "User created", data: createUser.dataValues};
+    const createUser = await Users.create({...user, password: hashedPassword});
+    const encodedUserId = generateToken(createUser.dataValues.id);
+    return {msg: "User created", data: {...createUser.dataValues, encodedId: encodedUserId}};
 
   }catch(error){
     console.log(error);
@@ -92,10 +91,10 @@ userController.loginUser = async(user) =>{
       }
 
       // If is not associated with a Google or Github account
-      const match = await bcrypt.compare(password, userFound.dataValues.password);
+      const match = bcrypt.compareSync(password, userFound.dataValues.password);
       if(match) {
         // Logged succesfully
-        const encodedUserId = generateToken(userExist.dataValues.id);
+        const encodedUserId = generateToken(userFound.dataValues.id);
         return {msg: "User logged", data: {...userFound.dataValues, encodedId: encodedUserId}}
       }else{
         // Wrong Password
@@ -151,8 +150,8 @@ userController.googleAuth = async(user) =>{
         googleUser: true,
         logged: true,
         verified: true,
-        genre: "Male",
-        birthday: "333"
+        genre: "Not specified",
+        birthday: "000"
       });
 
       const encodedUserId = generateToken(createUser.dataValues.id);
@@ -194,7 +193,7 @@ userController.githubAuth = async(gitCode) =>{
       }
     });
 
-
+    
     // LOGIN OR REGISTER
 
     const userRegistered = await Users.findOne({
@@ -231,8 +230,8 @@ userController.githubAuth = async(gitCode) =>{
       lastName: "-github",
       logged: true,
       verified: true,
-      genre: "Male",
-      birthday: "333"
+      genre: "Not specified",
+      birthday: "000"
     });
 
     const encodedUserId = generateToken(createUser.dataValues.id);
@@ -259,9 +258,8 @@ userController.updateUser = async(newUser, userId) =>{
     };
 
     if(newUser.password){
-      bcrypt.hash(newUser.password, 10, (err, hash)=> {
-        newUser.password = hash;
-      });
+      const hashedPassword = bcrypt.hashSync(newUser.password, 10);
+      newUser.password = hashedPassword;
     };
 
     await findUser.update(newUser);

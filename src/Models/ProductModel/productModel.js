@@ -26,6 +26,11 @@ const Products = sequelize.define(
       type: DataTypes.ARRAY(DataTypes.STRING),
       allowNull: false
     },
+    specifications: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+      defaultValue: ""
+    },
     categories: {
       type: DataTypes.ARRAY(DataTypes.STRING),
       allowNull: false
