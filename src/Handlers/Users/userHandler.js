@@ -145,6 +145,13 @@ userHandler.validateCredentialsHandler = async(req, res) =>{
   
 };
 
+userHandler.contactPreferenceHandler = async(req, res) =>{
+
+  const response = await userController.contactPreference(req.body);
+
+    res.status(200).json(response);
+  
+};
 
 
 
