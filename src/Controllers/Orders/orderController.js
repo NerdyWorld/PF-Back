@@ -29,7 +29,7 @@ ordersController.updateOrder = async(data) =>{
     };
 
     await findOrder.update({
-      status: data.status
+      orderStatus: data.status
     });
 
     await findOrder.save();
@@ -66,6 +66,28 @@ ordersController.getAllOrders = async() =>{
     
   }catch(error){
     console.log(error);
+  }
+};
+
+// Controlador para eliminar una orden por su ID
+ordersController.deleteOrderById = async (id) => {
+  try {
+    // Busca la orden por su ID y elimínala
+    const deletedOrder = await Orders.destroy({
+      where: {
+        id: id,
+      },
+    });
+
+    if (deletedOrder === 0) {
+      // Si no se encuentra la orden con ese ID, devuelve un error 404
+      return { error: 'No se encontró la orden con el ID proporcionado' };
+    }
+
+    return { success: 'Orden eliminada con éxito' };
+  } catch (error) {
+    console.error(error);
+    return { error: 'Se produjo un error al eliminar la orden' };
   }
 };
 
