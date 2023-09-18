@@ -5,6 +5,7 @@ const generateToken = require("../../Utils/jwtEncode");
 const axios = require("axios");
 const uniqid = require('uniqid'); 
 const bcrypt = require('bcrypt');
+const { Op } = require("sequelize");
 
 
 
@@ -244,8 +245,10 @@ userController.githubAuth = async(gitCode) =>{
   }
 };
 
-userController.updateUser = async(newUser, userId) =>{
+userController.updateUser = async(data, userId) =>{
   // return console.log(newUser);
+  const { newUser, oldPassword } = data;
+
   try{
     const findUser = await Users.findOne({
       where:{
@@ -257,10 +260,33 @@ userController.updateUser = async(newUser, userId) =>{
       return {msg: "No user found"}
     };
 
+    // VALIDATE USERNAME
+    if(newUser.userName){
+      const validateUsername = await Users.findOne({
+        where: {
+          userName: newUser.userName,
+          id: {
+            [Op.ne]: userId
+          }
+        }
+      });
+
+      if(validateUsername){
+        return {msg: "Username already in use"};
+      };
+    };
+
     if(newUser.password){
+      const oldPasswordMatchNew = bcrypt.compareSync(oldPassword, findUser.password);
+      if(!oldPasswordMatchNew){
+        return {msg: "Old password incorrect"};
+      };
+
       const hashedPassword = bcrypt.hashSync(newUser.password, 10);
       newUser.password = hashedPassword;
     };
+
+    
 
     await findUser.update(newUser);
 
@@ -955,6 +981,48 @@ userController.validateCredentials = async(data) =>{
 
     return {msg: "Credentials available"};
 
+  }catch(error){
+    console.log(error);
+  }
+};
+
+userController.contactPreference = async(data) =>{
+  try{
+    const { contactPreference, userId } = data;
+
+    const findUser = await Users.findOne({
+      where: {
+        id: userId
+      }
+    });
+
+    if(!findUser){
+      return {msg: "User not found"};
+    };
+
+    const userPreferences = findUser.dataValues.contactPreferences;
+    const findPreference = userPreferences.find(el => el === contactPreference);
+
+    if(findPreference){
+      await findUser.update({
+        contactPreferences: userPreferences.filter(el => el !== contactPreference)
+      })
+
+      await findUser.save();
+    }else{
+      await findUser.update({
+        contactPreferences: [...userPreferences, contactPreference]
+      });
+      
+      await findUser.save();
+    };
+
+    if(typeof findUser.dataValues.favorites === "string"){
+      findUser.dataValues.favorites = JSON.parse(findUser.dataValues.favorites);
+    }
+    return {msg: "Preferences updated", data: findUser.dataValues};
+
+   
   }catch(error){
     console.log(error);
   }

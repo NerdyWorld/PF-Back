@@ -143,7 +143,7 @@ productController.fetchProductsToDb = async() =>{
 productController.filterProducts = async(fields) =>{
 
   const { brand, category, color, priceMin, priceMax } = fields;
-  console.log(brand);
+
   try{
     let filteredProducts = [];
 
@@ -207,11 +207,13 @@ productController.filterProducts = async(fields) =>{
       }
     };
 
-    const filterByBrand = filteredProducts.filter(el => el.brand === brand);
-    if(!filterByBrand.length){
-      return {msg: "No products found", data: []};
-    }else{
-      filteredProducts = filterByBrand;
+    if(brand){
+      const filterByBrand = filteredProducts.filter(el => el.brand === brand);
+      if(!filterByBrand.length){
+        return {msg: "No products found", data: []};
+      }else{
+        filteredProducts = filterByBrand;
+      }
     }
 
 
@@ -222,6 +224,59 @@ productController.filterProducts = async(fields) =>{
     console.log(error);
   }
 }
+
+productController.getProduct = async(productId) =>{
+  try{
+    const findProduct = await Products.findOne({
+      where:{
+        name: productId
+      }
+    });
+
+    if(!findProduct){
+      return {msg:"Product not found"};
+    }
+
+    return {msg:"Product found", data: findProduct.dataValues};
+
+  }catch(error){
+    console.log(error);
+  }
+};
+
+
+productController.searchProducts = async(string) =>{
+  try{
+    const findProducts = await Products.findAll();
+
+    if(!findProducts.length){
+      return {msg: "Products not found", data: []};
+    };
+
+    let foundProducts = [];
+
+    findProducts.map(el => {
+      if(el.name.includes(string)){
+        foundProducts.push(el);
+      }
+    });
+
+    findProducts.map(el => {
+      el.categories.map(category => {
+        if(category.includes(string)){
+          foundProducts.push(el);
+        }
+      })
+    });
+
+    console.log(foundProducts);
+
+    return {msg:"Products found", data: foundProducts};
+
+  }catch(error){
+    console.log(error);
+  }
+};
 
 
 module.exports = productController;
