@@ -7,7 +7,7 @@ const brandRouter = Router();
 
 brandRouter.post("/create", brandsHandler.createBrand)
 brandRouter.delete("/delete/:brandId", brandsHandler.deleteBrand)
-brandRouter.get("/get-all-colors", brandsHandler.getAllBrands)
+brandRouter.get("/get-all-brands", brandsHandler.getAllBrands)
 
 
 
