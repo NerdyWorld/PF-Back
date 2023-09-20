@@ -9,14 +9,10 @@ productRouter.post("/create", productHandler.createProduct)
 productRouter.put("/update", productHandler.updateProduct)
 productRouter.delete("/delete/:productId", productHandler.deleteProduct)
 productRouter.get("/get-all-products", productHandler.getAllProducts)
-productRouter.get("/get-product", productHandler.getProduct)
-productRouter.get("/search", productHandler.searchProducts)
 
 
-productRouter.post("/filter-products", productHandler.filterProducts)
+productRouter.post("/filter-products", productHandler.filterProducts);
 
-
-productRouter.get("/fetch-products-to-db", productHandler.fetchProductToDb)
-
+productRouter.get("/fetch-products-to-db", productHandler.fetchProductToDb);
 
 module.exports = productRouter;

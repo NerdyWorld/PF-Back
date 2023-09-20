@@ -1,5 +1,5 @@
 const { DataTypes, UUIDV4 } = require("sequelize");
-const sequelize = require("../../db.js")
+const sequelize = require("../../db.js");
 
 const Users = sequelize.define(
   "Users",
@@ -14,22 +14,22 @@ const Users = sequelize.define(
       allowNull: false,
     },
     cart: {
-      type: DataTypes.TEXT, 
-      get: function() {
-          return JSON.parse(this.getDataValue('cart'));
-      }, 
-      set: function(val) {
-          return this.setDataValue('cart', JSON.stringify(val));
-      }
+      type: DataTypes.TEXT,
+      get: function () {
+        return JSON.parse(this.getDataValue("cart"));
+      },
+      set: function (val) {
+        return this.setDataValue("cart", JSON.stringify(val));
+      },
     },
     favorites: {
-      type: DataTypes.TEXT, 
-      get: function() {
-          return JSON.parse(this.getDataValue('favorites'));
-      }, 
-      set: function(val) {
-          return this.setDataValue('favorites', JSON.stringify(val));
-      }
+      type: DataTypes.TEXT,
+      get: function () {
+        return JSON.parse(this.getDataValue("favorites"));
+      },
+      set: function (val) {
+        return this.setDataValue("favorites", JSON.stringify(val));
+      },
     },
     lastName: {
       type: DataTypes.STRING,
@@ -52,39 +52,39 @@ const Users = sequelize.define(
     admin: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
-      defaultValue: false
+      defaultValue: false,
     },
     avatar: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: false,
     },
-    googleUser:{
+    googleUser: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
-      defaultValue: false
+      defaultValue: false,
     },
-    githubUser:{
+    githubUser: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
-      defaultValue: false
+      defaultValue: false,
     },
     logged: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
-      defaultValue: false
+      defaultValue: false,
     },
     genre: {
       type: DataTypes.STRING,
-      allowNull: true
+      allowNull: true,
     },
     birthday: {
       type: DataTypes.DATE,
-      allowNull: true
+      allowNull: true,
     },
     contactPreferences: {
       type: DataTypes.ARRAY(DataTypes.STRING),
       allowNull: false,
-      defaultValue: []
+      defaultValue: [],
     },
     disabled: {
       type: DataTypes.BOOLEAN,
