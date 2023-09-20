@@ -1,5 +1,5 @@
 const { DataTypes, UUIDV4 } = require("sequelize");
-const sequelize = require("../../db.js")
+const sequelize = require("../../db.js");
 
 const Products = sequelize.define(
   "Products",
@@ -16,56 +16,55 @@ const Products = sequelize.define(
     },
     brand: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: false,
     },
     colors: {
       type: DataTypes.ARRAY(DataTypes.STRING),
-      allowNull: false
+      allowNull: false,
     },
     sizes: {
       type: DataTypes.ARRAY(DataTypes.STRING),
-      allowNull: false
+      allowNull: false,
     },
     specifications: {
       type: DataTypes.TEXT,
       allowNull: false,
-      defaultValue: ""
+      defaultValue: "",
     },
     categories: {
       type: DataTypes.ARRAY(DataTypes.STRING),
-      allowNull: false
+      allowNull: false,
     },
     images: {
-      type: DataTypes.TEXT, 
-      get: function() {
-          return JSON.parse(this.getDataValue('images'));
-      }, 
-      set: function(val) {
-          return this.setDataValue('images', JSON.stringify(val));
-      }
+      type: DataTypes.TEXT,
+      get: function () {
+        return JSON.parse(this.getDataValue("images"));
+      },
+      set: function (val) {
+        return this.setDataValue("images", JSON.stringify(val));
+      },
     },
     stock: {
-      type: DataTypes.TEXT, 
-      get: function() {
-          return JSON.parse(this.getDataValue('stock'));
-      }, 
-      set: function(val) {
-          return this.setDataValue('stock', JSON.stringify(val));
-      }
+      type: DataTypes.TEXT,
+      get: function () {
+        return JSON.parse(this.getDataValue("stock"));
+      },
+      set: function (val) {
+        return this.setDataValue("stock", JSON.stringify(val));
+      },
     },
     description: {
       type: DataTypes.TEXT,
-      allowNull: false
+      allowNull: false,
     },
     price: {
       type: DataTypes.FLOAT,
-      allowNull: false
+      allowNull: false,
     },
     SKU: {
       type: DataTypes.STRING,
-      allowNull: false
-    }
-  
+      allowNull: false,
+    },
   },
   {
     timestamps: false,
