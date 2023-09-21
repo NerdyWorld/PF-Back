@@ -10,7 +10,7 @@ productHandler.getAllProducts = async (req, res) => {
 
 productHandler.createProduct = async (req, res) => {
   const response = await productController.createProduct(req.body);
-
+  console.log(req.body);
   if (response.msg === "Product already exist") {
     res.status(500).json(response);
   } else {

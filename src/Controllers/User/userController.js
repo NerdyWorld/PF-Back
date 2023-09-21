@@ -3,143 +3,253 @@ const Users = require("../../Models/UserModel/UserModel");
 const sendMail = require("../../Utils/emailCtrl");
 const generateToken = require("../../Utils/jwtEncode");
 const axios = require("axios");
-const uniqid = require('uniqid'); 
-const bcrypt = require('bcrypt');
-
-
+const uniqid = require("uniqid");
+const bcrypt = require("bcrypt");
 
 const { GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET } = process.env;
 
 const userController = () => {};
 
-
-userController.createUser = async(user) =>{
-  try{
+userController.createUser = async (user) => {
+  try {
     // VALIDATE IF THE EMAIL OR USER IS IN USE
     const validateEmail = await Users.findOne({
-      where:{
-        email: user.email
-      }
+      where: {
+        email: user.email,
+      },
     });
 
     const validateUsername = await Users.findOne({
-      where:{
-        userName: user.userName
-      }
+      where: {
+        userName: user.userName,
+      },
     });
 
-    if(validateEmail){
-      if(validateEmail.googleUser){
-        return {msg: "There is a Google Account associated with this email, try logging in with Google!"}
-      };
-      if(validateEmail.githubUser){
-        return {msg: "There is a GitHub Account associated with this email, try logging in with GitHub!"}
-      };
+    if (validateEmail) {
+      if (validateEmail.googleUser) {
+        return {
+          msg: "There is a Google Account associated with this email, try logging in with Google!",
+        };
+      }
+      if (validateEmail.githubUser) {
+        return {
+          msg: "There is a GitHub Account associated with this email, try logging in with GitHub!",
+        };
+      }
 
-      return {msg: "There is an account associated with this email!"}
-    };
-    if(validateUsername){
-      return {msg: "Username Error"}
+      return { msg: "There is an account associated with this email!" };
+    }
+    if (validateUsername) {
+      return { msg: "Username Error" };
     }
 
     // CREATE THE USER
-    
+
     const hashedPassword = bcrypt.hashSync(user.password, 10);
 
-    const createUser = await Users.create({...user, password: hashedPassword});
+    const createUser = await Users.create({
+      ...user,
+      password: hashedPassword,
+    });
     const encodedUserId = generateToken(createUser.dataValues.id);
-    return {msg: "User created", data: {...createUser.dataValues, encodedId: encodedUserId}};
-
-  }catch(error){
+    return {
+      msg: "User created",
+      data: { ...createUser.dataValues, encodedId: encodedUserId },
+    };
+  } catch (error) {
     console.log(error);
   }
 };
 
-userController.loginUser = async(user) =>{
-  try{
-    
+userController.loginUser = async (user) => {
+  try {
     const { credential, password } = user;
 
-
     const findUserByEmail = await Users.findOne({
-      where:{
-        email: credential
-      }
+      where: {
+        email: credential,
+      },
     });
 
     const findUserByUsername = await Users.findOne({
-      where:{
-        userName: credential
-      }
+      where: {
+        userName: credential,
+      },
     });
 
-    if(!findUserByEmail && !findUserByUsername){
-      if(credential.includes("@")){
-        return {msg: "Email Incorrect"}
-      }else{
-        return {msg: "Username Incorrect"}
+    if (!findUserByEmail && !findUserByUsername) {
+      if (credential.includes("@")) {
+        return { msg: "Email Incorrect" };
+      } else {
+        return { msg: "Username Incorrect" };
       }
-    };
+    }
 
-    if(findUserByEmail || findUserByUsername){
+    if (findUserByEmail || findUserByUsername) {
       const userFound = findUserByEmail ? findUserByEmail : findUserByUsername;
-      if(userFound.googleUser){
-        return {msg: "This email is associated with a Google account, please try logging in with Google"}
-      };
-      if(userFound.githubUser){
-        return {msg: "This email is associated with a GitHub account, please try logging in with GitHub"}
+      if (userFound.googleUser) {
+        return {
+          msg: "This email is associated with a Google account, please try logging in with Google",
+        };
+      }
+      if (userFound.githubUser) {
+        return {
+          msg: "This email is associated with a GitHub account, please try logging in with GitHub",
+        };
       }
 
       // If is not associated with a Google or Github account
       const match = bcrypt.compareSync(password, userFound.dataValues.password);
-      if(match) {
+      if (match) {
         // Logged succesfully
         const encodedUserId = generateToken(userFound.dataValues.id);
-        return {msg: "User logged", data: {...userFound.dataValues, encodedId: encodedUserId}}
-      }else{
+        return {
+          msg: "User logged",
+          data: { ...userFound.dataValues, encodedId: encodedUserId },
+        };
+      } else {
         // Wrong Password
-        return {msg: "Password Incorrect"};
+        return { msg: "Password Incorrect" };
+      }
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+userController.adminLogin = async (user) => {
+  try {
+    const { credential, password } = user;
+
+    const findUserByEmail = await Users.findOne({
+      where: {
+        email: credential,
+      },
+    });
+
+    const findUserByUsername = await Users.findOne({
+      where: {
+        userName: credential,
+      },
+    });
+
+    if (!findUserByEmail && !findUserByUsername) {
+      if (credential.includes("@")) {
+        return { msg: "Email Incorrect" };
+      } else {
+        return { msg: "Username Incorrect" };
       }
     }
 
-    
-  }catch(error){
+    if (findUserByEmail || findUserByUsername) {
+      const userFound = findUserByEmail ? findUserByEmail : findUserByUsername;
+      if (userFound.googleUser) {
+        return {
+          msg: "This email is associated with a Google account, please try logging in with Google",
+        };
+      }
+      if (userFound.githubUser) {
+        return {
+          msg: "This email is associated with a GitHub account, please try logging in with GitHub",
+        };
+      }
+
+      // If is not associated with a Google or Github account
+      const match = bcrypt.compareSync(password, userFound.dataValues.password);
+      if (match) {
+        // Logged succesfully
+        const encodedUserId = generateToken(userFound.dataValues.id);
+        if (userFound.admin) {
+          return {
+            msg: "User logged",
+            data: { ...userFound.dataValues, encodedId: encodedUserId },
+          };
+        } else {
+          return { msg: "Invalid credentials for admin" };
+        }
+      } else {
+        // Wrong Password
+        return { msg: "Password Incorrect" };
+      }
+    }
+  } catch (error) {
     console.log(error);
   }
 };
 
-userController.googleAuth = async(user) =>{
+userController.googleAuthAdmin = async (user) => {
   console.log(user);
-  
-  try{
+
+  try {
     const userExist = await Users.findOne({
       where: {
-        email: user.email
-      }
+        email: user.email,
+      },
     });
 
     // ACCOUNT ALREADY ASSOCIATED WITH GOOGLE EMAIL
-    if(userExist && !userExist.googleUser){
-      return {msg: "Account already associated with Google Email"};
-    };
+    if (userExist && !userExist.googleUser) {
+      return { msg: "Account already associated with Google Email" };
+    }
 
-     // LOG USER
-     if(userExist && userExist.googleUser){
-
+    // LOG USER
+    if (userExist && userExist.googleUser && userExist.admin) {
       const encodedUserId = generateToken(userExist.dataValues.id);
 
       await userExist.update({
-        logged: true
+        logged: true,
       });
 
       await userExist.save();
       console.log(userExist);
 
-      return {msg: "Google user logged", data: {...userExist.dataValues, encodedId: encodedUserId}}
+      return {
+        msg: "Google user logged",
+        data: { ...userExist.dataValues, encodedId: encodedUserId },
+      };
+    } else {
+      if (userExist && userExist.googleUser) {
+        return { msg: "Invalid credentials for admin" };
+      }
+    }
+  } catch (error) {
+    return { msg: "Account doesnt exist" };
+  }
+};
+
+userController.googleAuth = async (user) => {
+  console.log(user);
+
+  try {
+    const userExist = await Users.findOne({
+      where: {
+        email: user.email,
+      },
+    });
+
+    // ACCOUNT ALREADY ASSOCIATED WITH GOOGLE EMAIL
+    if (userExist && !userExist.googleUser) {
+      return { msg: "Account already associated with Google Email" };
+    }
+
+    // LOG USER
+    if (userExist && userExist.googleUser) {
+      const encodedUserId = generateToken(userExist.dataValues.id);
+
+      await userExist.update({
+        logged: true,
+      });
+
+      await userExist.save();
+      console.log(userExist);
+
+      return {
+        msg: "Google user logged",
+        data: { ...userExist.dataValues, encodedId: encodedUserId },
+      };
     }
 
     // REGISTER USER
-    if(!userExist){
+    if (!userExist) {
       const createUser = await Users.create({
         userName: user.userName,
         firstName: user.firstName || "-google",
@@ -151,72 +261,79 @@ userController.googleAuth = async(user) =>{
         logged: true,
         verified: true,
         genre: "Not specified",
-        birthday: "000"
+        birthday: "000",
       });
 
       const encodedUserId = generateToken(createUser.dataValues.id);
       console.log(createUser.dataValues);
 
-      return {msg: "Google user created", data: {...createUser.dataValues, encodedId: encodedUserId}};
+      return {
+        msg: "Google user created",
+        data: { ...createUser.dataValues, encodedId: encodedUserId },
+      };
     }
-
-  }catch(error){
+  } catch (error) {
     console.log(error);
   }
 };
 
-userController.githubAuth = async(gitCode) =>{
-  try{
+userController.githubAuth = async (gitCode) => {
+  try {
     const params = `?client_id=${GITHUB_CLIENT_ID}&client_secret=${GITHUB_CLIENT_SECRET}&code=${gitCode}`;
-    
+
     // OBTENEMOS TOKEN
-    const getAccessToken = await axios.post(`https://github.com/login/oauth/access_token${params}`, {
-      headers: {
-        "Accept": "application/json"
+    const getAccessToken = await axios.post(
+      `https://github.com/login/oauth/access_token${params}`,
+      {
+        headers: {
+          Accept: "application/json",
+        },
       }
-    });
+    );
 
     // PARSEAMOS EL TOKEN
     const accessToken = getAccessToken.data.split("=")[1].split("&")[0];
-    
 
     // OBTENEMOS DATOS Y EMAIL
     const getUserData = await axios("https:/api.github.com/user", {
       headers: {
-        "Authorization": `Bearer ${accessToken}`
-      }
+        Authorization: `Bearer ${accessToken}`,
+      },
     });
 
     const getUserEmail = await axios("https:/api.github.com/user/emails", {
       headers: {
-        "Authorization": `Bearer ${accessToken}`
-      }
+        Authorization: `Bearer ${accessToken}`,
+      },
     });
 
-    
     // LOGIN OR REGISTER
 
     const userRegistered = await Users.findOne({
-      where:{
-        email: getUserEmail.data[0].email
-      }
+      where: {
+        email: getUserEmail.data[0].email,
+      },
     });
-    if(userRegistered && !userRegistered.githubUser){
-      return {msg: "There is an account associated with your GitHub email, please try logging in manually!"}
+    if (userRegistered && !userRegistered.githubUser) {
+      return {
+        msg: "There is an account associated with your GitHub email, please try logging in manually!",
+      };
     }
-    if(userRegistered){
+    if (userRegistered) {
       // Already registered, so we log the user.
       const encodedUserId = generateToken(userRegistered.dataValues.id);
 
       await userRegistered.update({
-        logged: true
+        logged: true,
       });
 
       await userRegistered.save();
 
-
-      return {msg: "Github user logged", data: {...userRegistered, encodedId: encodedUserId}}
-    };
+      return {
+        msg: "Github user logged",
+        data: { ...userRegistered, encodedId: encodedUserId },
+      };
+    }
 
     // Not registered, so we register the user.
     const createUser = await Users.create({
@@ -231,36 +348,100 @@ userController.githubAuth = async(gitCode) =>{
       logged: true,
       verified: true,
       genre: "Not specified",
-      birthday: "000"
+      birthday: "000",
     });
 
     const encodedUserId = generateToken(createUser.dataValues.id);
-    
-    return {msg: "Github user created", data: {...createUser.dataValues, encodedId: encodedUserId}}
-    
 
-  }catch(error){
+    return {
+      msg: "Github user created",
+      data: { ...createUser.dataValues, encodedId: encodedUserId },
+    };
+  } catch (error) {
+    console.log(error);
+  }
+};
+userController.githubAuth = async (gitCode) => {
+  try {
+    const params = `?client_id=${GITHUB_CLIENT_ID}&client_secret=${GITHUB_CLIENT_SECRET}&code=${gitCode}`;
+
+    // OBTENEMOS TOKEN
+    const getAccessToken = await axios.post(
+      `https://github.com/login/oauth/access_token${params}`,
+      {
+        headers: {
+          Accept: "application/json",
+        },
+      }
+    );
+
+    // PARSEAMOS EL TOKEN
+    const accessToken = getAccessToken.data.split("=")[1].split("&")[0];
+
+    // OBTENEMOS DATOS Y EMAIL
+    const getUserData = await axios("https:/api.github.com/user", {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    const getUserEmail = await axios("https:/api.github.com/user/emails", {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    // LOGIN OR REGISTER
+
+    const userRegistered = await Users.findOne({
+      where: {
+        email: getUserEmail.data[0].email,
+      },
+    });
+    if (userRegistered && !userRegistered.githubUser) {
+      return {
+        msg: "There is an account associated with your GitHub email, please try logging in manually!",
+      };
+    }
+    if (userRegistered && userRegistered.admin) {
+      // Already registered, so we log the user.
+      const encodedUserId = generateToken(userRegistered.dataValues.id);
+
+      await userRegistered.update({
+        logged: true,
+      });
+
+      await userRegistered.save();
+
+      return {
+        msg: "Github user logged",
+        data: { ...userRegistered, encodedId: encodedUserId },
+      };
+    } else if (userRegistered) {
+      return { msg: "Invalid credentials for admin" };
+    }
+  } catch (error) {
     console.log(error);
   }
 };
 
-userController.updateUser = async(newUser, userId) =>{
+userController.updateUser = async (newUser, userId) => {
   // return console.log(newUser);
-  try{
+  try {
     const findUser = await Users.findOne({
-      where:{
-        id: userId.toString()
-      }
+      where: {
+        id: userId.toString(),
+      },
     });
 
-    if(!findUser){
-      return {msg: "No user found"}
-    };
+    if (!findUser) {
+      return { msg: "No user found" };
+    }
 
-    if(newUser.password){
+    if (newUser.password) {
       const hashedPassword = bcrypt.hashSync(newUser.password, 10);
       newUser.password = hashedPassword;
-    };
+    }
 
     await findUser.update(newUser);
 
@@ -268,107 +449,103 @@ userController.updateUser = async(newUser, userId) =>{
 
     const getAllUsers = await Users.findAll();
 
-    return {msg: "User updated", data: findUser, allData: getAllUsers};
-
-  }catch(error){
+    return { msg: "User updated", data: findUser, allData: getAllUsers };
+  } catch (error) {
     console.log(error);
   }
 };
 
-userController.deleteUser = async(userId) =>{
-  try{
+userController.deleteUser = async (userId) => {
+  try {
     const deleteUser = await Users.destroy({
-      where:{
-        id: userId
-      }
+      where: {
+        id: userId,
+      },
     });
 
-    return {msg: "User deleted", data: userId};
-  }catch(error){
+    return { msg: "User deleted", data: userId };
+  } catch (error) {
     console.log(error);
   }
 };
 
-userController.disableUser = async(userId) =>{
-  try{
+userController.disableUser = async (userId) => {
+  try {
     const findUser = await Users.findOne({
-      where:{
-        id: userId
-      }
+      where: {
+        id: userId,
+      },
     });
 
-    if(!findUser){
-      return {msg: "User not found"}
-    };
+    if (!findUser) {
+      return { msg: "User not found" };
+    }
 
-    if(findUser){
-      if(!findUser.disabled){
+    if (findUser) {
+      if (!findUser.disabled) {
         await findUser.update({
-          disabled: true
+          disabled: true,
         });
 
         await findUser.save();
 
-        return {msg: "User disabled", data: findUser}
-      }else{
+        return { msg: "User disabled", data: findUser };
+      } else {
         await findUser.update({
-          disabled: false
+          disabled: false,
         });
 
         await findUser.save();
 
-        return {msg: "User activated", data: findUser}
+        return { msg: "User activated", data: findUser };
       }
-    };
-
-  }catch(error){
+    }
+  } catch (error) {
     console.log(error);
   }
-  
+
   // El disable actua como un toggle, si la propiedad DISABLED del user,
   // esta en TRUE, la pone en FALSE, y viceversa.
 };
 
-userController.getUser = async(userId) =>{
-  try{
+userController.getUser = async (userId) => {
+  try {
     const getUser = await Users.findOne({
       where: {
-        id: userId
-      }
+        id: userId,
+      },
     });
 
-    if(!getUser){
-      return {msg: "User not found"}
+    if (!getUser) {
+      return { msg: "User not found" };
     }
 
-    return {msg: "User found", data: getUser};
-
-  }catch(error){
+    return { msg: "User found", data: getUser };
+  } catch (error) {
     console.log(error);
   }
 };
 
-userController.getAllUsers = async() =>{
-  try{
+userController.getAllUsers = async () => {
+  try {
     const getAllUsers = await Users.findAll();
 
-    return {data: getAllUsers};
-
-  }catch(error){
+    return { data: getAllUsers };
+  } catch (error) {
     console.log(error);
   }
 };
 
-userController.forgotPassword = async(userEmail) =>{
-  try{
+userController.forgotPassword = async (userEmail) => {
+  try {
     const findUser = await Users.findOne({
-      where:{
-        email: userEmail
-      }
+      where: {
+        email: userEmail,
+      },
     });
 
-    if(!findUser){
-      return {msg: "User not found"}
+    if (!findUser) {
+      return { msg: "User not found" };
     }
 
     const getToken = generateToken(findUser.id);
@@ -567,133 +744,126 @@ userController.forgotPassword = async(userEmail) =>{
       to: findUser.email,
       subject: `Rivélle Support`,
       html: HTML,
-      type: "forgotPasword"
+      type: "forgotPasword",
     };
 
     sendMail(data);
 
-    return {msg: "Forgot password email sent"};
-
-  }catch(error){
+    return { msg: "Forgot password email sent" };
+  } catch (error) {
     console.log(error);
   }
 };
 
-userController.favToggle = async(item, userId) =>{
-  try{
+userController.favToggle = async (item, userId) => {
+  try {
     const findUser = await Users.findOne({
-      where:{
-        id: userId
-      }
+      where: {
+        id: userId,
+      },
     });
 
-    if(!findUser){
-      return {msg: "User not found"}
+    if (!findUser) {
+      return { msg: "User not found" };
     }
 
-  let favorites = findUser.favorites || [];
+    let favorites = findUser.favorites || [];
 
-  if(!favorites.length){
-    // Si no hay nada en favoritos, agrega directo
-    favorites.push(item);
-    await findUser.update({
-      favorites
-    });
-    await findUser.save();
-    return {msg: "Item added to favs", data: findUser};
-
-  }else if(favorites.length){
-    // Si hay items en favoritos, valida si el item ya existe
-    const findItem = favorites.find(el => el.id === item.id);
-
-    if(findItem){
-      // Si el item existe lo saca
-      let filter = favorites.filter(el => el.id !== findItem.id);
-      favorites = filter;
-
-      await findUser.update({
-        favorites
-      });
-      await findUser.save();
-      return {msg: "Item removed from favs", data: findUser};
-    }else if(!findItem){
-      // Si el item no existe lo agrega
+    if (!favorites.length) {
+      // Si no hay nada en favoritos, agrega directo
       favorites.push(item);
       await findUser.update({
-        favorites
+        favorites,
       });
       await findUser.save();
-      return {msg: "Item added to favs", data: findUser};
+      return { msg: "Item added to favs", data: findUser };
+    } else if (favorites.length) {
+      // Si hay items en favoritos, valida si el item ya existe
+      const findItem = favorites.find((el) => el.id === item.id);
+
+      if (findItem) {
+        // Si el item existe lo saca
+        let filter = favorites.filter((el) => el.id !== findItem.id);
+        favorites = filter;
+
+        await findUser.update({
+          favorites,
+        });
+        await findUser.save();
+        return { msg: "Item removed from favs", data: findUser };
+      } else if (!findItem) {
+        // Si el item no existe lo agrega
+        favorites.push(item);
+        await findUser.update({
+          favorites,
+        });
+        await findUser.save();
+        return { msg: "Item added to favs", data: findUser };
+      }
     }
-  };
-
-
-  }catch(error){
+  } catch (error) {
     console.log(error);
   }
 };
 
-userController.cartToggle = async(item, userId) =>{
-  try{
+userController.cartToggle = async (item, userId) => {
+  try {
     const findUser = await Users.findOne({
-      where:{
-        id: userId
-      }
+      where: {
+        id: userId,
+      },
     });
 
-    if(!findUser){
-      return {msg: "User not found"}
+    if (!findUser) {
+      return { msg: "User not found" };
     }
 
-  let cart = findUser.cart || [];
+    let cart = findUser.cart || [];
 
-  if(!cart.length){
-    // Si no hay nada en favoritos, agrega directo
-    cart.push(item);
-    await findUser.update({
-      cart
-    });
-    await findUser.save();
-    return {msg: "Item added to cart", data: findUser};
-
-  }else if(cart.length){
-    // Si hay items en favoritos, valida si el item ya existe
-    const findItem = cart.find(el => el.id === item.id);
-
-    if(findItem){
-      // Si el item existe lo saca
-      let filter = cart.filter(el => el.id !== findItem.id);
-      cart = filter;
-
-      await findUser.update({
-        cart
-      });
-      await findUser.save();
-      return {msg: "Item removed from cart", data: findUser};
-    }else if(!findItem){
-      // Si el item no existe lo agrega
+    if (!cart.length) {
+      // Si no hay nada en favoritos, agrega directo
       cart.push(item);
       await findUser.update({
-        cart
+        cart,
       });
       await findUser.save();
-      return {msg: "Item added to cart", data: findUser};
+      return { msg: "Item added to cart", data: findUser };
+    } else if (cart.length) {
+      // Si hay items en favoritos, valida si el item ya existe
+      const findItem = cart.find((el) => el.id === item.id);
+
+      if (findItem) {
+        // Si el item existe lo saca
+        let filter = cart.filter((el) => el.id !== findItem.id);
+        cart = filter;
+
+        await findUser.update({
+          cart,
+        });
+        await findUser.save();
+        return { msg: "Item removed from cart", data: findUser };
+      } else if (!findItem) {
+        // Si el item no existe lo agrega
+        cart.push(item);
+        await findUser.update({
+          cart,
+        });
+        await findUser.save();
+        return { msg: "Item added to cart", data: findUser };
+      }
     }
-  };
-
-
-  }catch(error){
+  } catch (error) {
     console.log(error);
   }
 };
 
-userController.sendActivationCode = async(data) =>{
-  try{
+userController.sendActivationCode = async (data) => {
+  try {
     console.log(data);
-    const {email, activationCode, firstName} = data;
-    if(!email || !activationCode || !firstName){
-      return {msg: "Missing fields"};
-    };
+    const { email, activationCode, firstName } = data;
+    if (!email || !activationCode || !firstName) {
+      return { msg: "Missing fields" };
+    }
 
     let HTML = `
     <!DOCTYPE html>
@@ -908,57 +1078,53 @@ userController.sendActivationCode = async(data) =>{
       to: email,
       subject: `Welcome to Rivelle!`,
       html: HTML,
-      type: "activationCode"
+      type: "activationCode",
     };
 
     sendMail(dataSource);
 
-    return {msg: "Activation code sent"};
-
-  }catch(error){
+    return { msg: "Activation code sent" };
+  } catch (error) {
     console.log(error);
   }
 };
 
-userController.validateCredentials = async(data) =>{
-  try{
+userController.validateCredentials = async (data) => {
+  try {
     const { email, username } = data;
 
     const findByEmail = await Users.findOne({
-      where:{
-        email
-      }
+      where: {
+        email,
+      },
     });
 
     const findByUsername = await Users.findOne({
       where: {
-        userName: username
-      }
+        userName: username,
+      },
     });
 
+    if (findByUsername) {
+      return { msg: "Username in use" };
+    }
 
-    if(findByUsername){
-      return {msg: "Username in use"};
-    };
+    if (findByEmail) {
+      return { msg: "Email in use" };
+    }
 
-    if(findByEmail){
-      return {msg: "Email in use"};
-    };
+    if (findByEmail && findByEmail.dataValues.googleUser) {
+      return { msg: "Email in use with Google" };
+    }
 
-    if(findByEmail && findByEmail.dataValues.googleUser){
-      return {msg: "Email in use with Google"}
-    };
+    if (findByEmail && findByEmail.dataValues.githubUser) {
+      return { msg: "Email in use with Github" };
+    }
 
-    if(findByEmail && findByEmail.dataValues.githubUser){
-      return {msg: "Email in use with Github"}
-    };
-
-    return {msg: "Credentials available"};
-
-  }catch(error){
+    return { msg: "Credentials available" };
+  } catch (error) {
     console.log(error);
   }
 };
-
 
 module.exports = userController;
